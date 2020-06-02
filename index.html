@@ -1,0 +1,56 @@
+<html>
+
+  <head>
+    <!-- Load Tensorflow and BodyPix -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.0"></script>
+  </head>
+
+  <body>
+<img hidden id='image' src='https://image.freepik.com/free-vector/bright-geometrical-neon-lights-background_52683-24456.jpg'/ >
+    <video id="video" width="480" height="320" autoplay playsinline></video>
+    <canvas id="canvas" width="480" height="320"></canvas>
+<canvas id="rescanvas" width="480" height="320"></canvas>
+  </body>
+
+
+  <script>
+const videoElement = document.getElementById('video');
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+              videoElement.srcObject = stream;
+              videoElement.play();
+            })
+            .catch(err => {
+              alert(`Following error occured: ${err}`);
+            });
+    const canvas = document.getElementById('canvas');
+
+videoElement.onplaying = () => {
+  canvas.height = videoElement.videoHeight;
+  canvas.width = videoElement.videoWidth;
+ setInterval(loadAndBlur, 200);
+};
+    async function loadAndBlur() {
+      const net = await bodyPix.load();
+      const segmentation = await net.segmentPerson(videoElement);
+
+const foregroundColor = {r: 0, g: 0, b: 0, a: 0};
+const backgroundColor = {r: 0, g: 0, b: 0, a: 255};
+const backgroundDarkeningMask = bodyPix.toMask(
+    segmentation, foregroundColor, backgroundColor);
+
+const opacity = 1;
+const maskBlurAmount = 900;
+const flipHorizontal = false;
+const edgeBlurAmount = 3;
+      const backgroundBlurAmount = 9;
+
+const canvas = document.getElementById('canvas');
+
+      bodyPix.drawBokehEffect(canvas, videoElement, segmentation, backgroundBlurAmount, edgeBlurAmount, flipHorizontal);
+    }
+  </script>
+
+</html>
